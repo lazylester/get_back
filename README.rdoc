@@ -1,0 +1,54 @@
+= GetBack
+
+Rails engine with utilities for backup and restore of entire application database.
+Includes rake tasks that may be invoked by cron task to periodically backup the database and send it by email.
+
+Include this in your application Gemfile:
+
+gem 'get_back', :git => 'git://github.com/lazylester/get_back.git'
+
+Mount the get_back routes in your config.routes.rb with:
+
+mount GetBack::Engine => '/get_back', :as => 'get_back', and the following routes are added
+
+  backup_restore POST   /backups/:backup_id/restore(.:format) get_back/backups#restore
+         backups GET    /backups(.:format)                    get_back/backups#index
+                 POST   /backups(.:format)                    get_back/backups#create
+      new_backup GET    /backups/new(.:format)                get_back/backups#new
+     edit_backup GET    /backups/:id/edit(.:format)           get_back/backups#edit
+          backup GET    /backups/:id(.:format)                get_back/backups#show
+                 PUT    /backups/:id(.:format)                get_back/backups#update
+                 DELETE /backups/:id(.:format)                get_back/backups#destroy
+
+
+An admin page is provided at the url: '/get_back/backups'
+
+The location of the backup files is defined by the global constant BACKUP_DIR. This must be defined in the main application.
+Alternatively, a backup file can be created in an arbitrary directory by passing a :dir parameter:
+     db_backup = DbBackup.new(:dir => tmp)
+This is added to support a remote sync capability from the production server back to development machine.
+
+Here is a Capistrano recipe that you can run on your dev machine to synchronize the dev database with the production server.
+It takes advantage of the server configuration parameters in your deploy.rb file.
+
+      namespace :db do
+        desc "creates a copy of the remote db and load it into the local development db"
+        task :sync do
+          run "cd #{current_path} && RAILS_ENV=production rake db:snapshot "
+          run_locally "rsync --remove-source-files --rsh=ssh #{user}@#{domain}:'#{current_path}/tmp/backups*' db/backups"
+          run_locally "rake db:restore"
+        end
+      end
+
+
+Suggest keeping backup files in a location that will survive code updates, for example in a typical Capistrano configuration there might be a 'shared' directory. Include in the main application an initializer in config/initializers with the following:
+
+BACKUP_DIR = Rails.env.production? ? Rails.root.join("../../shared/backups") : "#{Rails.root}/db/backups/"
+
+If it is intended to use the rake tasks for periodically emailing the backup file (e.g. driven by cron), the following global constants must be defined in your application:
+        BACKUP_RECIPIENTS (text string in the format "firstname lastname<email@domain.com>")
+        ORGANIZATION_NAME (text string, name of the application owner organization)
+        ADMIN_EMAIL (text string, for example: "support@domain.com")
+        SITE_URL (text string, for example "domain.com")
+
+

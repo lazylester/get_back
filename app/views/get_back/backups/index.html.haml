@@ -1,0 +1,35 @@
+= message_block :on => [:db_backup]
+%h1 Database backup
+%table
+  %tr
+    %th Date/Time
+    %th
+      File size
+      %br>/
+      Mbytes
+    %th
+    %th
+    %th
+  - @backups.each do |b|
+    %tr
+      %td= b.date
+      %td= "%5.2f" % (File.size(b.file).to_f/1000000)
+      %td= link_to 'Restore', backup_restore_path(b.filename_base), :method => :post, :confirm=>'are you sure?'
+      %td= link_to 'Delete', backup_path(b.filename_base), :method=>:delete
+      %td= link_to 'Download', backup_path(b.filename_base)
+= button_to "Create new backup", backups_path, :method=>:post
+%br/
+:javascript
+  function check_file(){
+  	var f = $('#upload_uploaded_file').val(); 
+  	if(f.length==0)
+  		{alert('You must first select a file to upload'); 
+  		return false;
+  		}
+  	var f_parts = f.split('.')
+  	var file_extension = f_parts[f_parts.length-1]
+  	if (file_extension != 'sql'){alert('File type must be sql'); return false;}
+  	}
+- form_tag 'backups/restore_from_upload', {:multipart=>true, :onsubmit=>'return check_file()', :method=>:post} do
+  = file_field_tag 'upload[uploaded_file]'
+  = submit_tag "Restore from uploaded file"

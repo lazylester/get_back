@@ -1,0 +1,14 @@
+%h2 AWS Glacier Archives
+- if glacier_archives.empty?
+  %p None have been created
+- else
+  %table#glacier_archives
+    = render :partial => 'get_back/aws_archive_retrieval_jobs/glacier_archive', :collection => glacier_archives, :as => :archive
+
+:coffeescript
+  @initiate_retrieval = (id)->
+    $('#glacier_archives').load(get_back.aws_archive_retrieval_job_create_path, {archive_id : id})
+  @fetch_archive = (id)->
+    $('#glacier_archives').load(get_back.aws_fetch_archive_path, {archive_id : id})
+  @restore = (id)->
+    $.post(get_back.aws_fetch_archive_path,{archive_id : id})
