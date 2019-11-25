@@ -13,9 +13,6 @@ class ApplicationDatabase::PostgresAdapter
   end
 
   def save_compressed_to_file(file)
-    file = file.path
-    #system("touch #{file}")
-    # see http://stackoverflow.com/a/31599308/451893
     # -Fc means "custom format" which is compressed by default
     system("#{pg_dump} -w -Fc #{db_config['database']} > #{file}")
     $?.exitstatus.zero?

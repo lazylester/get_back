@@ -25,6 +25,6 @@ namespace :db do
 
   desc "restores the database from the most recent backup"
   task :restore => :environment do
-    ApplicationDatabase.restore_from_compressed_file DbBackup.most_recent
+    ApplicationDatabase.new.restore_from_compressed_file DbBackup.most_recent
   end
 end

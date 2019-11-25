@@ -69,8 +69,7 @@ class DbBackup
   # the save action extracts the contents of the entire database for the current environment
   # and dumps it into the DbBackup#filename file
   def save
-    raise "not implemented"
-    #ApplicationDatabase.save_compressed_to_file(@file.path)
+    ApplicationDatabase.new.save_compressed_to_file(@file.path)
   end
 
   def filename
